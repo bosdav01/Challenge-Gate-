@@ -809,7 +809,7 @@
   const IKA_ACCURACY_TARGET = 99.67;
   const ARCADE_URL = '#';
 
-  // Echte deutsche Wörter (Hauptanteil ~70%)
+  // Echte deutsche Wörter (Anteil ~30%)
   const REAL_WORDS = [
     'als', 'all', 'das', 'dass',
     'fad', 'fall', 'falls', 'fass',
@@ -818,19 +818,30 @@
     'salsa'
   ];
 
-  // Wortähnliche Klänge (~22%)
+  // Phantasie-Wörter mit Fokus auf rechte Hand (k, ö) und Hand-Wechsel (~35%)
   const WORD_LIKE = [
-    'alfa', 'ada', 'dada',
-    'jada', 'fada', 'lala', 'jaja',
-    'dala', 'sala', 'kasa',
-    'lasa', 'jasa', 'fala', 'kada'
+    // Stark rechts-lastig (für Ausgleich, da k und ö in echten Wörtern fehlen)
+    'jökö', 'lökö', 'kölö', 'jölö',
+    'jöla', 'ölja', 'köla', 'ökla', 'sölö',
+    // Hand-Wechsel mit k
+    'kasa', 'kala', 'jaka', 'laka', 'saka', 'kafa',
+    // Hand-Wechsel mit ö
+    'föla', 'kösa', 'köfa', 'öfla',
+    // Klassische Phantasie (rhythmischer Hand-Wechsel)
+    'jada', 'lala', 'jaja', 'jasa', 'lasa',
+    'alfa'
   ];
 
-  // Übungssequenzen für Fingerkoordination (~8%)
+  // Übungssequenzen (~35%) – didaktisch ausgewogen, alle Finger trainieren
   const PRACTICE_SEQ = [
+    // Hand-Wechsel-Paare (klassische Tippkurs-Übung)
+    'fj', 'dk', 'sl', 'aö',
+    'fjfj', 'dkdk', 'slsl', 'aöaö',
+    // Beide Hände nacheinander
     'asdf', 'jklö',
     'fdsa', 'ölkj',
-    'fjfj', 'dkdk', 'slsl'
+    // Komplette Grundreihe (anspruchsvoll)
+    'asdfjklö', 'ölkjfdsa'
   ];
 
   function generateText(targetLength) {
@@ -841,9 +852,9 @@
       let attempts = 0;
       do {
         const r = Math.random();
-        if (r < 0.70) {
+        if (r < 0.30) {
           word = REAL_WORDS[Math.floor(Math.random() * REAL_WORDS.length)];
-        } else if (r < 0.92) {
+        } else if (r < 0.65) {
           word = WORD_LIKE[Math.floor(Math.random() * WORD_LIKE.length)];
         } else {
           word = PRACTICE_SEQ[Math.floor(Math.random() * PRACTICE_SEQ.length)];
