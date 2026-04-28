@@ -71,7 +71,7 @@
     padding: 3rem 1.5rem;
   }
 
-  .canvas { width: 100%; max-width: 980px; }
+  .canvas { width: 100%; max-width: 1100px; }
   .hidden { display: none !important; }
 
   .hero-grid {
@@ -324,7 +324,7 @@
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 12px;
-    padding: 1.1rem 1.4rem;
+    padding: 1.3rem 1.6rem;
     transition: all 0.2s;
   }
 
@@ -335,16 +335,16 @@
 
   .stat-card-label {
     font-family: var(--mono);
-    font-size: 0.65rem;
+    font-size: 0.7rem;
     color: var(--text-dim);
     text-transform: uppercase;
     letter-spacing: 0.18em;
-    margin-bottom: 0.35rem;
+    margin-bottom: 0.4rem;
   }
 
   .stat-card-value {
     font-family: var(--mono);
-    font-size: 1.7rem;
+    font-size: 2rem;
     font-weight: 600;
     color: var(--text);
     font-variant-numeric: tabular-nums;
@@ -355,16 +355,16 @@
     background: var(--bg-soft);
     border: 1px solid var(--border);
     border-radius: 18px;
-    padding: 2.75rem 2.5rem;
-    min-height: 220px;
+    padding: 3rem 3rem;
+    min-height: 280px;
     font-family: var(--mono);
-    font-size: 1.85rem;
-    line-height: 2.2;
-    letter-spacing: 0.03em;
+    font-size: 2.2rem;
+    line-height: 2.3;
+    letter-spacing: 0.04em;
     user-select: none;
     overflow: hidden;
     position: relative;
-    word-spacing: 0.4em;
+    word-spacing: 0.5em;
   }
 
   .typing-area::before {
@@ -632,10 +632,10 @@
     .stage { padding: 2rem 1rem; }
     .test-head { grid-template-columns: 1fr; gap: 1rem; text-align: center; }
     .test-head-left, .test-head-right { text-align: center; }
-    .typing-area { padding: 1.75rem 1.25rem; font-size: 1.4rem; line-height: 2; }
+    .typing-area { padding: 2rem 1.5rem; font-size: 1.5rem; line-height: 2; min-height: 200px; }
     .live-stats { gap: 0.6rem; }
-    .stat-card { padding: 0.85rem 1rem; }
-    .stat-card-value { font-size: 1.3rem; }
+    .stat-card { padding: 1rem 1.1rem; }
+    .stat-card-value { font-size: 1.5rem; }
     .metrics-row { grid-template-columns: 1fr; }
     .info-card { padding: 1.5rem; }
   }
@@ -809,33 +809,49 @@
   const IKA_ACCURACY_TARGET = 99.67;
   const ARCADE_URL = '#';
 
-  const WORD_POOL = [
-    'als','als','als',
-    'all','all','all',
-    'fall','fall','fall',
-    'falls','falls',
-    'lass','lass','lass',
-    'fass','fass',
-    'fad','fad',
-    'ja','ja','ja',
-    'da','da','da',
-    'la','la',
-    'alfa','alfa',
-    'lala','jaja','dada',
-    'lasa','jasa','fada',
-    'dala','sala',
-    'asdf','jklö',
-    'fdsa','ölkj',
-    'fjfj','dkdk','slsl',
-    'as','df','jk','lö',
-    'ad','jl'
+  // Echte deutsche Wörter (Hauptanteil ~70%)
+  const REAL_WORDS = [
+    'als', 'all', 'das', 'dass',
+    'fad', 'fall', 'falls', 'fass',
+    'ja', 'da', 'la',
+    'las', 'lass',
+    'salsa'
+  ];
+
+  // Wortähnliche Klänge (~22%)
+  const WORD_LIKE = [
+    'alfa', 'ada', 'dada',
+    'jada', 'fada', 'lala', 'jaja',
+    'dala', 'sala', 'kasa',
+    'lasa', 'jasa', 'fala', 'kada'
+  ];
+
+  // Übungssequenzen für Fingerkoordination (~8%)
+  const PRACTICE_SEQ = [
+    'asdf', 'jklö',
+    'fdsa', 'ölkj',
+    'fjfj', 'dkdk', 'slsl'
   ];
 
   function generateText(targetLength) {
     let text = '';
+    let lastWord = null;
     while (text.length < targetLength) {
-      const word = WORD_POOL[Math.floor(Math.random() * WORD_POOL.length)];
+      let word;
+      let attempts = 0;
+      do {
+        const r = Math.random();
+        if (r < 0.70) {
+          word = REAL_WORDS[Math.floor(Math.random() * REAL_WORDS.length)];
+        } else if (r < 0.92) {
+          word = WORD_LIKE[Math.floor(Math.random() * WORD_LIKE.length)];
+        } else {
+          word = PRACTICE_SEQ[Math.floor(Math.random() * PRACTICE_SEQ.length)];
+        }
+        attempts++;
+      } while (word === lastWord && attempts < 10);
       text += word + ' ';
+      lastWord = word;
     }
     return text.trim();
   }
