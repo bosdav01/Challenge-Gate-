@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Challenge Gate – Lektion 1</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'SF Mono', 'Monaco', 'Menlo', 'Consolas', 'Courier New', monospace;
+    background: #0a0e1a;
+    color: #e6edf3;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow-x: hidden;
+    background-image:
+      radial-gradient(circle at 20% 30%, rgba(56, 189, 248, 0.08), transparent 50%),
+      radial-gradient(circle at 80% 70%, rgba(99, 102, 241, 0.08), transparent 50%);
+    padding: 2rem 0;
+  }
+
+  .container {
+    width: 90%;
+    max-width: 900px;
+    padding: 2rem;
+  }
+
+  /* Header */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(56, 189, 248, 0.2);
+  }
+
+  .title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #38bdf8;
+    letter-spacing: 0.08em;
+  }
+
+  .subtitle {
+    font-size: 0.85rem;
+    color: #94a3b8;
+    margin-top: 0.25rem;
+  }
+
+  .timer {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #38bdf8;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.05em;
+  }
+
+  .timer.warning { color: #f59e0b; }
+  .timer.danger { color: #ef4444; }
+
+  /* Progress bar */
+  .progress-bar {
+    width: 100%;
+    height: 4px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #38bdf8, #6366f1);
+    transition: width 0.3s linear;
+  }
+
+  /* Stats bar */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .stat {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.05);
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    text-align: center;
+  }
+
+  .stat-label {
+    font-size: 0.7rem;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 0.25rem;
+  }
+
+  .stat-value {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #e6edf3;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Text display */
+  .text-area {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 2rem;
+    font-size: 1.7rem;
+    line-height: 2;
+    letter-spacing: 0.08em;
+    margin-bottom: 1rem;
+    min-height: 220px;
+    overflow: hidden;
+    user-select: none;
+    cursor: text;
+    word-spacing: 0.3em;
+  }
+
+  .char {
+    color: #475569;
+    transition: color 0.1s, background 0.1s;
+    padding: 0 1px;
+    border-radius: 2px;
+  }
+
+  .char.correct { color: #22c55e; }
+  .char.incorrect {
+    color: #ef4444;
+    background: rgba(239,68,68,0.15);
+    text-decoration: underline;
+    text-decoration-color: #ef4444;
+  }
+  .char.current {
+    color: #e6edf3;
+    background: rgba(56, 189, 248, 0.3);
+    border-radius: 3px;
+    animation: blink 1s infinite;
+  }
+
+  @keyframes blink {
+    50% { background: rgba(56, 189, 248, 0.6); }
+  }
+
+  .hint {
+    text-align: center;
+    color: #64748b;
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+  }
+
+  /* Hidden input */
+  .hidden-input {
+    position: absolute;
+    left: -9999px;
+    opacity: 0;
+  }
+
+  /* Start / End screens */
+  .start-screen, .end-screen, .countdown-screen {
+    text-align: center;
+    padding: 2.5rem 2rem;
+  }
+
+  .start-screen h1, .end-screen h1 {
+    font-size: 2.5rem;
+    color: #38bdf8;
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+  }
+
+  .screen-sub {
+    font-size: 1rem;
+    color: #94a3b8;
+    margin-bottom: 1.5rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .end-screen p.intro {
+    font-size: 1.05rem;
+    color: #cbd5e1;
+    margin-bottom: 1.5rem;
+  }
+
+  .info-box {
+    background: rgba(56, 189, 248, 0.05);
+    border: 1px solid rgba(56, 189, 248, 0.2);
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin: 2rem auto;
+    max-width: 600px;
+    text-align: left;
+  }
+
+  .info-box h3 {
+    color: #38bdf8;
+    margin-bottom: 0.75rem;
+    font-size: 0.9rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .info-box ul {
+    list-style: none;
+    padding: 0;
+  }
+
+  .info-box li {
+    padding: 0.4rem 0;
+    color: #cbd5e1;
+    padding-left: 1.5rem;
+    position: relative;
+    font-size: 0.95rem;
+  }
+
+  .info-box li:before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: #38bdf8;
+  }
+
+  .info-box li strong {
+    color: #38bdf8;
+  }
+
+  .btn {
+    display: inline-block;
+    padding: 1rem 2.5rem;
+    background: linear-gradient(135deg, #38bdf8, #6366f1);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 1.05rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 14px rgba(56, 189, 248, 0.3);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 22px rgba(56, 189, 248, 0.45);
+  }
+
+  .btn:active { transform: translateY(0); }
+
+  /* Countdown */
+  .countdown-num {
+    font-size: 9rem;
+    font-weight: 800;
+    color: #38bdf8;
+    text-shadow: 0 0 50px rgba(56, 189, 248, 0.6);
+    animation: countdownPulse 1s infinite;
+    line-height: 1;
+  }
+
+  .countdown-label {
+    margin-top: 1rem;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 0.9rem;
+  }
+
+  @keyframes countdownPulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.08); opacity: 0.85; }
+  }
+
+  /* Results */
+  .results-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin: 2rem auto;
+    max-width: 600px;
+  }
+
+  .result-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+  }
+
+  .result-card.highlight {
+    border-color: rgba(56, 189, 248, 0.4);
+    background: rgba(56, 189, 248, 0.05);
+  }
+
+  .result-label {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 0.5rem;
+  }
+
+  .result-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #38bdf8;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .result-unit {
+    font-size: 0.95rem;
+    color: #64748b;
+    margin-left: 0.25rem;
+  }
+
+  .feedback {
+    background: rgba(34, 197, 94, 0.05);
+    border: 1px solid rgba(34, 197, 94, 0.2);
+    border-radius: 10px;
+    padding: 1.25rem 1.5rem;
+    margin: 1.5rem auto;
+    max-width: 600px;
+    color: #cbd5e1;
+    line-height: 1.6;
+    font-size: 0.95rem;
+  }
+
+  .result-code {
+    margin: 1rem auto;
+    padding: 0.75rem 1rem;
+    background: rgba(255,255,255,0.03);
+    border: 1px dashed rgba(255,255,255,0.15);
+    border-radius: 6px;
+    font-size: 0.8rem;
+    color: #94a3b8;
+    max-width: 600px;
+    font-family: monospace;
+  }
+
+  .hidden { display: none !important; }
+
+  @media (max-width: 600px) {
+    .container { padding: 1rem; }
+    .text-area { font-size: 1.3rem; padding: 1.5rem; }
+    .stats { grid-template-columns: repeat(3, 1fr); }
+    .stat-value { font-size: 1.2rem; }
+    .results-grid { grid-template-columns: 1fr; }
+    .timer { font-size: 1.8rem; }
+    .countdown-num { font-size: 6rem; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- ========== START SCREEN ========== -->
+  <div id="startScreen">
+    <div class="start-screen">
+      <h1>Challenge Gate</h1>
+      <div class="screen-sub">Lektion 1 · Standortbestimmung</div>
+
+      <div class="info-box">
+        <h3>So funktioniert's</h3>
+        <ul>
+          <li>Tippe den angezeigten Text so genau und zügig wie möglich</li>
+          <li>Verwendet wird die Grundreihe: <strong>a s d f j k l ö</strong></li>
+          <li>Die Korrekturtaste (Backspace) darfst du verwenden</li>
+          <li>Du hast <strong id="durationLabel">90 Sekunden</strong> Zeit</li>
+          <li>Anschliessend siehst du dein Ergebnis</li>
+        </ul>
+      </div>
+
+      <button class="btn" onclick="startCountdown()">Bereit – los geht's</button>
+    </div>
+  </div>
+
+  <!-- ========== COUNTDOWN ========== -->
+  <div id="countdownScreen" class="hidden">
+    <div class="countdown-screen">
+      <div id="countdownNum" class="countdown-num">3</div>
+      <div class="countdown-label">Bereit machen</div>
+    </div>
+  </div>
+
+  <!-- ========== TEST SCREEN ========== -->
+  <div id="testScreen" class="hidden">
+    <div class="header">
+      <div>
+        <div class="title">CHALLENGE GATE</div>
+        <div class="subtitle">Lektion 1 · Grundreihe</div>
+      </div>
+      <div id="timer" class="timer">01:30</div>
+    </div>
+
+    <div class="progress-bar">
+      <div id="progressFill" class="progress-fill" style="width: 100%"></div>
+    </div>
+
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-label">Korrekt</div>
+        <div id="charCount" class="stat-value">0</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Fehler</div>
+        <div id="errorCount" class="stat-value">0</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Genauigkeit</div>
+        <div id="accuracy" class="stat-value">100%</div>
+      </div>
+    </div>
+
+    <div id="textArea" class="text-area"></div>
+    <div class="hint">Tipp einfach drauflos – Eingabe wird automatisch erfasst</div>
+    <input type="text" id="hiddenInput" class="hidden-input" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+  </div>
+
+  <!-- ========== END SCREEN ========== -->
+  <div id="endScreen" class="hidden">
+    <div class="end-screen">
+      <h1>Challenge Gate abgeschlossen</h1>
+      <p class="intro">Hier ist deine Standortbestimmung für Lektion 1</p>
+
+      <div class="results-grid">
+        <div class="result-card highlight">
+          <div class="result-label">Tempo</div>
+          <div><span id="resultCpm" class="result-value">0</span><span class="result-unit">A/min</span></div>
+        </div>
+        <div class="result-card highlight">
+          <div class="result-label">Genauigkeit</div>
+          <div><span id="resultAccuracy" class="result-value">0</span><span class="result-unit">%</span></div>
+        </div>
+        <div class="result-card">
+          <div class="result-label">Korrekte Anschläge</div>
+          <div><span id="resultCorrect" class="result-value">0</span></div>
+        </div>
+        <div class="result-card">
+          <div class="result-label">Fehler</div>
+          <div><span id="resultErrors" class="result-value">0</span></div>
+        </div>
+      </div>
+
+      <div id="feedbackText" class="feedback"></div>
+
+      <div id="resultCode" class="result-code"></div>
+
+      <button class="btn" onclick="goToArcade()">Weiter zur Arcade</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // =========================================================================
+  // KONFIGURATION – hier kannst du Werte anpassen
+  // =========================================================================
+
+  const DURATION_SECONDS = 90;        // Dauer Challenge Gate (90 Sek empfohlen für Lektion 1)
+  const ARCADE_URL = '#';              // URL deiner Arcade hier eintragen, z.B. 'https://deinaccount.github.io/arcade/'
+
+  // Übungsmuster – ausschliesslich Lektion-1-Buchstaben (a s d f j k l ö)
+  const PATTERNS = [
+    'asdf', 'jklö', 'fdsa', 'ölkj',
+    'fjfj', 'dkdk', 'slsl', 'aöaö',
+    'ja', 'la', 'fa', 'ka', 'sa', 'da',
+    'jk', 'lö', 'as', 'df',
+    'fall', 'lass', 'alf',
+    'asdf', 'jklö',
+    'fjdksla', 'ölskdjf',
+    'ad as af', 'jk jl jö',
+    'as df jk lö', 'jaja lala'
+  ];
+
+  // =========================================================================
+  // STATE
+  // =========================================================================
+
+  let practiceText = '';
+  let typedChars = [];           // was tatsächlich getippt wurde an jeder Position
+  let errorPositions = new Set(); // Positionen, an denen Fehler gemacht wurden
+  let currentIndex = 0;
+  let correctChars = 0;
+  let totalKeystrokes = 0;
+  let errors = 0;
+  let timerInterval = null;
+  let timeLeft = DURATION_SECONDS;
+  let startTime = null;
+  let isActive = false;
+
+  // =========================================================================
+  // ELEMENTE
+  // =========================================================================
+
+  const startScreen = document.getElementById('startScreen');
+  const countdownScreen = document.getElementById('countdownScreen');
+  const testScreen = document.getElementById('testScreen');
+  const endScreen = document.getElementById('endScreen');
+  const textArea = document.getElementById('textArea');
+  const timerEl = document.getElementById('timer');
+  const progressFill = document.getElementById('progressFill');
+  const charCountEl = document.getElementById('charCount');
+  const errorCountEl = document.getElementById('errorCount');
+  const accuracyEl = document.getElementById('accuracy');
+  const countdownNumEl = document.getElementById('countdownNum');
+  const durationLabel = document.getElementById('durationLabel');
+
+  durationLabel.textContent = DURATION_SECONDS + ' Sekunden';
+
+  // =========================================================================
+  // TEXT-GENERIERUNG
+  // =========================================================================
+
+  function generateText(targetLength) {
+    let text = '';
+    while (text.length < targetLength) {
+      const pattern = PATTERNS[Math.floor(Math.random() * PATTERNS.length)];
+      text += pattern + ' ';
+    }
+    return text.trim();
+  }
+
+  // =========================================================================
+  // ABLAUF
+  // =========================================================================
+
+  function startCountdown() {
+    startScreen.classList.add('hidden');
+    countdownScreen.classList.remove('hidden');
+
+    let count = 3;
+    countdownNumEl.textContent = count;
+
+    const interval = setInterval(() => {
+      count--;
+      if (count > 0) {
+        countdownNumEl.textContent = count;
+      } else if (count === 0) {
+        countdownNumEl.textContent = 'Los!';
+      } else {
+        clearInterval(interval);
+        startTest();
+      }
+    }, 1000);
+  }
+
+  function startTest() {
+    countdownScreen.classList.add('hidden');
+    testScreen.classList.remove('hidden');
+
+    practiceText = generateText(800);
+    typedChars = new Array(practiceText.length).fill(null);
+    errorPositions = new Set();
+    currentIndex = 0;
+    correctChars = 0;
+    totalKeystrokes = 0;
+    errors = 0;
+    isActive = true;
+    startTime = Date.now();
+
+    renderText();
+    timerInterval = setInterval(updateTimer, 100);
+  }
+
+  // =========================================================================
+  // RENDERING
+  // =========================================================================
+
+  function renderText() {
+    // Performance-Optimierung: nur sichtbares Fenster rendern
+    const windowStart = Math.max(0, currentIndex - 25);
+    const windowEnd = Math.min(practiceText.length, currentIndex + 150);
+
+    let html = '';
+    for (let i = windowStart; i < windowEnd; i++) {
+      const ch = practiceText[i];
+      let className = 'char';
+
+      if (i < currentIndex) {
+        if (errorPositions.has(i)) {
+          className += ' incorrect';
+        } else {
+          className += ' correct';
+        }
+      } else if (i === currentIndex) {
+        className += ' current';
+      }
+
+      const display = ch === ' ' ? '&nbsp;' : ch;
+      html += '<span class="' + className + '">' + display + '</span>';
+    }
+    textArea.innerHTML = html;
+  }
+
+  // =========================================================================
+  // EINGABE
+  // =========================================================================
+
+  function handleKeydown(e) {
+    if (!isActive) return;
+
+    // Backspace: zurückgehen
+    if (e.key === 'Backspace') {
+      e.preventDefault();
+      if (currentIndex > 0) {
+        currentIndex--;
+        // Fehler an dieser Position aus dem aktuellen Zustand entfernen
+        // (bleibt aber im totalKeystrokes-Zähler)
+        if (errorPositions.has(currentIndex)) {
+          errorPositions.delete(currentIndex);
+        } else {
+          // Korrektes Zeichen wird wieder "ungetippt"
+          correctChars = Math.max(0, correctChars - 1);
+        }
+        typedChars[currentIndex] = null;
+        renderText();
+        updateStats();
+      }
+      return;
+    }
+
+    // Nur einzelne Zeichentasten verarbeiten
+    if (e.key.length !== 1) return;
+    e.preventDefault();
+
+    if (currentIndex >= practiceText.length) return;
+
+    const expected = practiceText[currentIndex];
+    const typed = e.key;
+    totalKeystrokes++;
+
+    typedChars[currentIndex] = typed;
+
+    if (typed === expected) {
+      correctChars++;
+    } else {
+      errors++;
+      errorPositions.add(currentIndex);
+    }
+
+    currentIndex++;
+    renderText();
+    updateStats();
+
+    // Falls Text aufgebraucht (sollte bei 800 Zeichen / 90 Sek nicht passieren)
+    if (currentIndex >= practiceText.length) {
+      endTest();
+    }
+  }
+
+  function updateStats() {
+    charCountEl.textContent = correctChars;
+    errorCountEl.textContent = errors;
+    const acc = totalKeystrokes > 0
+      ? Math.round((correctChars / totalKeystrokes) * 100)
+      : 100;
+    accuracyEl.textContent = acc + '%';
+  }
+
+  // =========================================================================
+  // TIMER
+  // =========================================================================
+
+  function updateTimer() {
+    const elapsed = (Date.now() - startTime) / 1000;
+    timeLeft = Math.max(0, DURATION_SECONDS - elapsed);
+
+    const minutes = Math.floor(timeLeft / 60);
+    const seconds = Math.floor(timeLeft % 60);
+    timerEl.textContent =
+      String(minutes).padStart(2, '0') + ':' +
+      String(seconds).padStart(2, '0');
+
+    progressFill.style.width = (timeLeft / DURATION_SECONDS * 100) + '%';
+
+    timerEl.classList.remove('warning', 'danger');
+    if (timeLeft < 10) timerEl.classList.add('danger');
+    else if (timeLeft < 30) timerEl.classList.add('warning');
+
+    if (timeLeft <= 0) {
+      endTest();
+    }
+  }
+
+  // =========================================================================
+  // ENDE
+  // =========================================================================
+
+  function endTest() {
+    isActive = false;
+    clearInterval(timerInterval);
+
+    const elapsed = Math.min(DURATION_SECONDS, (Date.now() - startTime) / 1000);
+    const cpm = elapsed > 0 ? Math.round((correctChars / elapsed) * 60) : 0;
+    const accuracy = totalKeystrokes > 0
+      ? Math.round((correctChars / totalKeystrokes) * 100)
+      : 0;
+
+    document.getElementById('resultCpm').textContent = cpm;
+    document.getElementById('resultAccuracy').textContent = accuracy;
+    document.getElementById('resultCorrect').textContent = correctChars;
+    document.getElementById('resultErrors').textContent = errors;
+
+    // Qualitatives Feedback (motivierend, keine Bewertung)
+    let feedback = '';
+    if (accuracy >= 95) {
+      feedback = 'Sehr saubere Arbeit – die Grundreihe sitzt schon gut. ';
+    } else if (accuracy >= 85) {
+      feedback = 'Solide Eingabe. Die Tastenposition wird zunehmend sicher. ';
+    } else if (accuracy >= 70) {
+      feedback = 'Gut auf dem Weg. Mit weiterem Üben wird die Trefferquote steigen. ';
+    } else {
+      feedback = 'Die Grundreihe braucht noch Wiederholung – das ist nach Lektion 1 völlig normal. ';
+    }
+
+    if (cpm >= 60) {
+      feedback += 'Dein Tempo ist für diesen Lernstand bemerkenswert.';
+    } else if (cpm >= 30) {
+      feedback += 'Dein Tempo entwickelt sich gut.';
+    } else {
+      feedback += 'Tempo kommt mit der Zeit – Genauigkeit hat jetzt Vorrang.';
+    }
+
+    document.getElementById('feedbackText').textContent = feedback;
+
+    // Result-Code zur einfachen Datenerfassung beim Testing
+    const code = `CPM:${cpm} | ACC:${accuracy}% | OK:${correctChars} | ERR:${errors} | KS:${totalKeystrokes} | T:${elapsed.toFixed(1)}s`;
+    document.getElementById('resultCode').textContent = 'Datencode für Protokoll: ' + code;
+
+    // In Konsole loggen (für ggf. spätere Datenerfassung)
+    console.log('Challenge Gate Ergebnis:', {
+      timestamp: new Date().toISOString(),
+      cpm: cpm,
+      accuracy: accuracy,
+      correctChars: correctChars,
+      errors: errors,
+      totalKeystrokes: totalKeystrokes,
+      duration: elapsed
+    });
+
+    testScreen.classList.add('hidden');
+    endScreen.classList.remove('hidden');
+  }
+
+  function goToArcade() {
+    if (ARCADE_URL && ARCADE_URL !== '#') {
+      window.location.href = ARCADE_URL;
+    } else {
+      alert('Hinweis: Arcade-URL noch nicht konfiguriert.\nBitte in der HTML-Datei die Konstante ARCADE_URL anpassen.');
+    }
+  }
+
+  // Globaler Keydown-Handler
+  document.addEventListener('keydown', handleKeydown);
+</script>
+</body>
+</html>
